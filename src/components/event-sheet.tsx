@@ -14,7 +14,7 @@ import { toast } from 'sonner'
 import type { Event, Case, SortOrder } from '@/lib/types'
 import {
   ArrowUpDown, Plus, Pencil, Trash2, ChevronDown, ChevronUp,
-  FileText, MessageSquare
+  FileText, MessageSquare, Paperclip, Calendar
 } from 'lucide-react'
 
 interface Props {
@@ -68,40 +68,36 @@ export function EventSheet({ caseData, events: initialEvents, isAdmin }: Props) 
   return (
     <div className="space-y-4">
       {/* Controls */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <Button
           variant="outline"
           size="sm"
           onClick={() => setSortOrder(s => s === 'asc' ? 'desc' : 'asc')}
-          className="gap-2"
+          className="gap-2 text-xs sm:text-sm"
         >
-          <ArrowUpDown className="h-4 w-4" />
-          {sortOrder === 'asc' ? 'Oldest First' : 'Newest First'}
+          <ArrowUpDown className="h-3.5 w-3.5" />
+          <span className="hidden xs:inline">{sortOrder === 'asc' ? 'Oldest First' : 'Newest First'}</span>
+          <span className="xs:hidden">{sortOrder === 'asc' ? 'Oldest' : 'Newest'}</span>
         </Button>
         {isAdmin && (
-          <Button size="sm" onClick={() => setAddEventOpen(true)} className="gap-2">
-            <Plus className="h-4 w-4" />
+          <Button size="sm" onClick={() => setAddEventOpen(true)} className="gap-2 text-xs sm:text-sm">
+            <Plus className="h-3.5 w-3.5" />
             Add Event
           </Button>
         )}
       </div>
 
-      {/* Event Table */}
-      <div className="rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-        {/* Header */}
-        <div className="grid grid-cols-[3rem_1fr_8rem_8rem] bg-gray-800 text-white text-sm font-semibold">
-          <div className="px-4 py-3 text-center">S.No</div>
-          <div className="px-4 py-3">Event Description</div>
-          <div className="px-4 py-3 text-center">Event Date</div>
-          <div className="px-4 py-3 text-center">Documents</div>
+      {/* ── DESKTOP TABLE (md+) ── */}
+      <div className="hidden md:block rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+        <div className="grid grid-cols-[3rem_1fr_9rem_8rem] bg-gradient-to-r from-gray-900 to-gray-700 text-white text-sm font-semibold">
+          <div className="px-4 py-3.5 text-center">#</div>
+          <div className="px-4 py-3.5">Event Description</div>
+          <div className="px-4 py-3.5 text-center">Date</div>
+          <div className="px-4 py-3.5 text-center">Details</div>
         </div>
 
         {sorted.length === 0 ? (
-          <div className="py-16 text-center text-gray-500">
-            <FileText className="h-10 w-10 mx-auto mb-3 text-gray-300" />
-            <p className="font-medium">No events yet</p>
-            {isAdmin && <p className="text-sm mt-1">Click "Add Event" to get started</p>}
-          </div>
+          <EmptyState isAdmin={isAdmin} onAdd={() => setAddEventOpen(true)} />
         ) : (
           sorted.map((event, idx) => {
             const isExpanded = expandedRows.has(event.id)
@@ -110,32 +106,28 @@ export function EventSheet({ caseData, events: initialEvents, isAdmin }: Props) 
 
             return (
               <div key={event.id} className="border-t border-gray-100">
-                {/* Main row */}
-                <div
-                  className={`grid grid-cols-[3rem_1fr_8rem_8rem] items-center hover:bg-gray-50 transition-colors ${
-                    idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
-                  }`}
-                >
-                  <div className="px-4 py-3 text-center">
-                    <span className="text-sm font-mono text-gray-500 font-medium">
+                <div className={`grid grid-cols-[3rem_1fr_9rem_8rem] items-center hover:bg-blue-50/40 transition-colors ${
+                  idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/60'
+                }`}>
+                  <div className="px-4 py-3.5 text-center">
+                    <span className="text-sm font-mono text-gray-400 font-semibold">
                       {String(idx + 1).padStart(2, '0')}
                     </span>
                   </div>
-                  <div className="px-4 py-3">
-                    <div className="flex items-start gap-2">
+                  <div className="px-4 py-3.5">
+                    <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 leading-snug">
-                          {event.event_description}
-                        </p>
-                        <div className="flex items-center gap-2 mt-1">
+                        <p className="text-sm font-semibold text-gray-900 leading-snug">{event.event_description}</p>
+                        <div className="flex flex-wrap items-center gap-2 mt-1.5">
                           <ImportanceBadge importance={event.importance} />
                           {attachments.length > 0 && (
-                            <span className="text-xs text-gray-400">
+                            <span className="inline-flex items-center gap-1 text-xs text-gray-400">
+                              <Paperclip className="h-3 w-3" />
                               {attachments.length} file{attachments.length !== 1 ? 's' : ''}
                             </span>
                           )}
                           {(event.internal_remark || event.final_remark) && (
-                            <span className="text-xs text-gray-400 flex items-center gap-1">
+                            <span className="inline-flex items-center gap-1 text-xs text-gray-400">
                               <MessageSquare className="h-3 w-3" /> Remarks
                             </span>
                           )}
@@ -145,14 +137,14 @@ export function EventSheet({ caseData, events: initialEvents, isAdmin }: Props) 
                         <div className="flex items-center gap-1 flex-shrink-0">
                           <button
                             onClick={() => setEditEvent(event)}
-                            className="p-1 rounded hover:bg-blue-100 text-gray-400 hover:text-blue-600"
+                            className="p-1.5 rounded-lg hover:bg-blue-100 text-gray-400 hover:text-blue-600 transition-colors"
                             title="Edit"
                           >
                             <Pencil className="h-3.5 w-3.5" />
                           </button>
                           <button
                             onClick={() => handleDeleteEvent(event.id)}
-                            className="p-1 rounded hover:bg-red-100 text-gray-400 hover:text-red-600"
+                            className="p-1.5 rounded-lg hover:bg-red-100 text-gray-400 hover:text-red-600 transition-colors"
                             title="Delete"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
@@ -161,110 +153,119 @@ export function EventSheet({ caseData, events: initialEvents, isAdmin }: Props) 
                       )}
                     </div>
                   </div>
-                  <div className="px-4 py-3 text-center">
-                    <span className="text-sm text-gray-700 font-medium">
-                      {format(parseISO(event.event_date), 'dd-MMM-yyyy')}
+                  <div className="px-4 py-3.5 text-center">
+                    <span className="text-sm text-gray-700 font-medium whitespace-nowrap">
+                      {format(parseISO(event.event_date), 'dd MMM yyyy')}
                     </span>
                   </div>
-                  <div className="px-4 py-3 text-center">
+                  <div className="px-4 py-3.5 text-center">
                     {(hasDetails || isAdmin) ? (
                       <button
                         onClick={() => toggleRow(event.id)}
-                        className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded-full transition-colors"
+                        className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-2.5 py-1.5 rounded-full transition-colors border border-blue-100"
                       >
-                        {attachments.length > 0 ? 'View' : 'Details'}
+                        {isExpanded ? 'Hide' : 'View'}
                         {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
                       </button>
                     ) : (
-                      <span className="text-xs text-gray-400">—</span>
+                      <span className="text-xs text-gray-300">—</span>
                     )}
                   </div>
                 </div>
 
-                {/* Expanded details */}
                 {isExpanded && (
-                  <div className="border-t border-gray-100 bg-blue-50/30 px-6 py-4">
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                      {/* Remarks */}
-                      {(event.internal_remark || event.final_remark || isAdmin) && (
-                        <div className="space-y-3">
-                          {event.internal_remark && (
-                            <div>
-                              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                                Internal Remark
-                              </p>
-                              <p className="text-sm text-gray-700 bg-white rounded-lg p-3 border border-gray-200">
-                                {event.internal_remark}
-                              </p>
-                            </div>
-                          )}
-                          {event.final_remark && (
-                            <div>
-                              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-                                Final Remark
-                              </p>
-                              <p className="text-sm text-gray-700 bg-white rounded-lg p-3 border border-gray-200">
-                                {event.final_remark}
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      )}
+                  <ExpandedDetails
+                    event={event}
+                    attachments={attachments}
+                    isAdmin={isAdmin}
+                    onEdit={() => setEditEvent(event)}
+                    onDelete={() => handleDeleteEvent(event.id)}
+                    onDeleteAttachment={handleDeleteAttachment}
+                  />
+                )}
+              </div>
+            )
+          })
+        )}
+      </div>
 
-                      {/* Attachments */}
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                            Attachments ({attachments.length})
-                          </p>
-                          {isAdmin && (
-                            <FileUploader
-                              eventId={event.id}
-                              onUploaded={() => window.location.reload()}
-                            />
-                          )}
-                        </div>
-                        {attachments.length > 0 ? (
-                          <div className="space-y-1.5">
-                            {attachments.map(att => (
-                              <AttachmentViewer
-                                key={att.id}
-                                attachment={att}
-                                isAdmin={isAdmin}
-                                onDelete={handleDeleteAttachment}
-                              />
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-xs text-gray-400 italic">No attachments</p>
+      {/* ── MOBILE CARDS (< md) ── */}
+      <div className="md:hidden space-y-3">
+        {sorted.length === 0 ? (
+          <div className="rounded-2xl border border-gray-200 bg-white">
+            <EmptyState isAdmin={isAdmin} onAdd={() => setAddEventOpen(true)} />
+          </div>
+        ) : (
+          sorted.map((event, idx) => {
+            const isExpanded = expandedRows.has(event.id)
+            const attachments = event.attachments ?? []
+            const hasDetails = event.internal_remark || event.final_remark || attachments.length > 0
+
+            return (
+              <div key={event.id} className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+                {/* Card header */}
+                <div className="px-4 pt-4 pb-3">
+                  <div className="flex items-start gap-3">
+                    <span className="flex-shrink-0 w-7 h-7 rounded-full bg-gray-100 text-gray-500 text-xs font-bold font-mono flex items-center justify-center mt-0.5">
+                      {String(idx + 1).padStart(2, '0')}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-gray-900 leading-snug">
+                        {event.event_description}
+                      </p>
+                      <div className="flex flex-wrap items-center gap-2 mt-2">
+                        <ImportanceBadge importance={event.importance} />
+                        <span className="inline-flex items-center gap-1 text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                          <Calendar className="h-3 w-3" />
+                          {format(parseISO(event.event_date), 'dd MMM yyyy')}
+                        </span>
+                        {attachments.length > 0 && (
+                          <span className="inline-flex items-center gap-1 text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                            <Paperclip className="h-3 w-3" />
+                            {attachments.length}
+                          </span>
                         )}
                       </div>
                     </div>
-
-                    {/* Admin actions */}
                     {isAdmin && (
-                      <div className="flex gap-2 mt-4 pt-3 border-t border-blue-100">
-                        <Button
-                          variant="outline"
-                          size="sm"
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        <button
                           onClick={() => setEditEvent(event)}
-                          className="gap-1"
+                          className="p-1.5 rounded-lg hover:bg-blue-100 text-gray-400 hover:text-blue-600"
                         >
                           <Pencil className="h-3.5 w-3.5" />
-                          Edit Event
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
+                        </button>
+                        <button
                           onClick={() => handleDeleteEvent(event.id)}
-                          className="gap-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                          className="p-1.5 rounded-lg hover:bg-red-100 text-gray-400 hover:text-red-600"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
-                          Delete Event
-                        </Button>
+                        </button>
                       </div>
                     )}
                   </div>
+                </div>
+
+                {/* Toggle */}
+                {(hasDetails || isAdmin) && (
+                  <button
+                    onClick={() => toggleRow(event.id)}
+                    className="w-full px-4 py-2.5 flex items-center justify-between text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 border-t border-blue-100 transition-colors"
+                  >
+                    {isExpanded ? 'Hide Details' : 'View Details & Files'}
+                    {isExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                  </button>
+                )}
+
+                {isExpanded && (
+                  <ExpandedDetails
+                    event={event}
+                    attachments={attachments}
+                    isAdmin={isAdmin}
+                    onEdit={() => setEditEvent(event)}
+                    onDelete={() => handleDeleteEvent(event.id)}
+                    onDeleteAttachment={handleDeleteAttachment}
+                  />
                 )}
               </div>
             )
@@ -275,7 +276,7 @@ export function EventSheet({ caseData, events: initialEvents, isAdmin }: Props) 
       {/* Add Event Dialog */}
       {isAdmin && (
         <Dialog open={addEventOpen} onOpenChange={setAddEventOpen}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-4 sm:mx-auto">
             <DialogHeader>
               <DialogTitle>Add New Event</DialogTitle>
             </DialogHeader>
@@ -293,7 +294,7 @@ export function EventSheet({ caseData, events: initialEvents, isAdmin }: Props) 
       {/* Edit Event Dialog */}
       {isAdmin && editEvent && (
         <Dialog open={!!editEvent} onOpenChange={() => setEditEvent(null)}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-4 sm:mx-auto">
             <DialogHeader>
               <DialogTitle>Edit Event</DialogTitle>
             </DialogHeader>
@@ -307,6 +308,101 @@ export function EventSheet({ caseData, events: initialEvents, isAdmin }: Props) 
             />
           </DialogContent>
         </Dialog>
+      )}
+    </div>
+  )
+}
+
+function ExpandedDetails({
+  event, attachments, isAdmin, onEdit, onDelete, onDeleteAttachment
+}: {
+  event: Event
+  attachments: NonNullable<Event['attachments']>
+  isAdmin?: boolean
+  onEdit: () => void
+  onDelete: () => void
+  onDeleteAttachment: (id: string, url: string) => void
+}) {
+  return (
+    <div className="bg-gradient-to-b from-blue-50/60 to-white px-4 sm:px-6 py-4 border-t border-blue-100 space-y-4">
+      {(event.internal_remark || event.final_remark) && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {event.internal_remark && (
+            <div className="bg-white rounded-xl border border-amber-200 p-3">
+              <p className="text-xs font-bold text-amber-600 uppercase tracking-wider mb-1.5">Internal Remark</p>
+              <p className="text-sm text-gray-700 leading-relaxed">{event.internal_remark}</p>
+            </div>
+          )}
+          {event.final_remark && (
+            <div className="bg-white rounded-xl border border-green-200 p-3">
+              <p className="text-xs font-bold text-green-600 uppercase tracking-wider mb-1.5">Final Remark</p>
+              <p className="text-sm text-gray-700 leading-relaxed">{event.final_remark}</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+            Attachments {attachments.length > 0 && `(${attachments.length})`}
+          </p>
+          {isAdmin && (
+            <FileUploader
+              eventId={event.id}
+              onUploaded={() => window.location.reload()}
+            />
+          )}
+        </div>
+        {attachments.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {attachments.map(att => (
+              <AttachmentViewer
+                key={att.id}
+                attachment={att}
+                isAdmin={isAdmin}
+                onDelete={onDeleteAttachment}
+              />
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-gray-400 italic">No attachments yet</p>
+        )}
+      </div>
+
+      {isAdmin && (
+        <div className="flex gap-2 pt-2 border-t border-blue-100">
+          <Button variant="outline" size="sm" onClick={onEdit} className="gap-1.5 text-xs">
+            <Pencil className="h-3.5 w-3.5" /> Edit Event
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onDelete}
+            className="gap-1.5 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+          >
+            <Trash2 className="h-3.5 w-3.5" /> Delete
+          </Button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function EmptyState({ isAdmin, onAdd }: { isAdmin?: boolean; onAdd?: () => void }) {
+  return (
+    <div className="py-16 text-center text-gray-500">
+      <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-4">
+        <FileText className="h-8 w-8 text-gray-300" />
+      </div>
+      <p className="font-semibold text-gray-600">No events yet</p>
+      {isAdmin && (
+        <button
+          onClick={onAdd}
+          className="mt-3 text-sm text-blue-600 hover:text-blue-800 font-medium underline underline-offset-2"
+        >
+          Add the first event
+        </button>
       )}
     </div>
   )

@@ -28,18 +28,20 @@ export default async function AdminCasePage({ params }: { params: Promise<{ code
     .order('event_date', { ascending: true })
 
   return (
-    <div className="space-y-5">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 sm:space-y-5">
+      <div className="flex items-center justify-between gap-2">
         <Link href="/admin">
-          <Button variant="ghost" size="sm" className="gap-2">
+          <Button variant="ghost" size="sm" className="gap-2 text-xs sm:text-sm px-2 sm:px-3">
             <ArrowLeft className="h-4 w-4" />
-            All Cases
+            <span className="hidden xs:inline">All Cases</span>
+            <span className="xs:hidden">Back</span>
           </Button>
         </Link>
         <Link href={`/${caseData.case_code}`} target="_blank">
-          <Button variant="outline" size="sm" className="gap-2">
-            <ExternalLink className="h-4 w-4" />
-            Public View
+          <Button variant="outline" size="sm" className="gap-2 text-xs sm:text-sm">
+            <ExternalLink className="h-3.5 w-3.5" />
+            <span className="hidden xs:inline">Public View</span>
+            <span className="xs:hidden">Public</span>
           </Button>
         </Link>
       </div>

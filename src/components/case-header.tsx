@@ -7,8 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { updateCaseImportance } from '@/lib/actions/cases'
 import { toast } from 'sonner'
 import type { Case, Importance } from '@/lib/types'
-import { Scale, User, Phone, MapPin, Calendar, RefreshCw, Hash } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { Scale, User, Phone, MapPin, Calendar, Hash } from 'lucide-react'
 
 interface Props {
   caseData: Case
@@ -16,7 +15,6 @@ interface Props {
 }
 
 export function CaseHeader({ caseData, isAdmin }: Props) {
-  const router = useRouter()
   const [importance, setImportance] = useState<Importance>(caseData.importance)
 
   function handleImportanceChange(value: string | null) {
@@ -28,31 +26,35 @@ export function CaseHeader({ caseData, isAdmin }: Props) {
         setImportance(caseData.importance)
       } else {
         toast.success('Importance updated')
-        router.refresh()
       }
     })
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
       {/* Top bar */}
-      <div className="bg-gray-800 px-6 py-4">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="bg-white/10 rounded-lg p-2">
-              <Scale className="h-6 w-6 text-white" />
+      <div className="bg-gradient-to-r from-gray-900 to-gray-700 px-4 sm:px-6 py-4 sm:py-5">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-start gap-3 min-w-0">
+            <div className="bg-white/15 rounded-xl p-2 sm:p-2.5 flex-shrink-0 mt-0.5">
+              <Scale className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
             </div>
-            <div>
-              <h1 className="text-xl font-bold text-white leading-tight">{caseData.title}</h1>
-              <div className="flex items-center gap-2 mt-0.5">
-                <span className="text-gray-300 text-sm font-mono">#{caseData.case_code}</span>
+            <div className="min-w-0">
+              <h1 className="text-lg sm:text-2xl font-bold text-white leading-tight break-words">
+                {caseData.title}
+              </h1>
+              <div className="flex items-center gap-1.5 mt-1">
+                <Hash className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
+                <span className="text-gray-300 text-xs sm:text-sm font-mono tracking-wider">
+                  {caseData.case_code}
+                </span>
               </div>
             </div>
           </div>
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0 mt-0.5">
             {isAdmin ? (
               <Select value={importance} onValueChange={handleImportanceChange}>
-                <SelectTrigger className="w-36 bg-white/10 border-white/20 text-white h-8">
+                <SelectTrigger className="w-32 sm:w-36 bg-white/15 border-white/20 text-white h-8 text-xs sm:text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -68,59 +70,49 @@ export function CaseHeader({ caseData, isAdmin }: Props) {
         </div>
       </div>
 
-      {/* Details grid */}
-      <div className="px-6 py-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <div className="flex items-start gap-2">
-          <User className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
-          <div>
-            <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">Client</p>
-            <p className="text-sm font-semibold text-gray-800">{caseData.client_name}</p>
-          </div>
-        </div>
+      {/* Details */}
+      <div className="px-4 sm:px-6 py-4 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <InfoItem icon={<User className="h-4 w-4" />} label="Client" value={caseData.client_name} />
         {caseData.contact_number && (
-          <div className="flex items-start gap-2">
-            <Phone className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">Contact</p>
-              <p className="text-sm font-semibold text-gray-800">{caseData.contact_number}</p>
-            </div>
-          </div>
+          <InfoItem icon={<Phone className="h-4 w-4" />} label="Contact" value={caseData.contact_number} />
         )}
-        <div className="flex items-start gap-2">
-          <Calendar className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
-          <div>
-            <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">Created</p>
-            <p className="text-sm font-semibold text-gray-800">
-              {format(new Date(caseData.created_at), 'dd MMM yyyy')}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-start gap-2">
-          <RefreshCw className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
-          <div>
-            <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">Updated</p>
-            <p className="text-sm font-semibold text-gray-800">
-              {format(new Date(caseData.updated_at), 'dd MMM yyyy')}
-            </p>
-          </div>
-        </div>
+        <InfoItem
+          icon={<Calendar className="h-4 w-4" />}
+          label="Filed"
+          value={format(new Date(caseData.created_at), 'dd MMM yyyy')}
+        />
+        <InfoItem
+          icon={<Calendar className="h-4 w-4" />}
+          label="Updated"
+          value={format(new Date(caseData.updated_at), 'dd MMM yyyy')}
+        />
         {caseData.address && (
-          <div className="flex items-start gap-2 sm:col-span-2">
+          <div className="col-span-2 lg:col-span-4 flex items-start gap-2">
             <MapPin className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
             <div>
               <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">Address</p>
-              <p className="text-sm font-semibold text-gray-800">{caseData.address}</p>
+              <p className="text-sm font-medium text-gray-800">{caseData.address}</p>
             </div>
           </div>
         )}
         {caseData.description && (
-          <div className="flex items-start gap-2 sm:col-span-4">
-            <div>
-              <p className="text-xs text-gray-400 font-medium uppercase tracking-wide mb-1">Description</p>
-              <p className="text-sm text-gray-700">{caseData.description}</p>
-            </div>
+          <div className="col-span-2 lg:col-span-4 pt-2 border-t border-gray-100">
+            <p className="text-xs text-gray-400 font-medium uppercase tracking-wide mb-1">Description</p>
+            <p className="text-sm text-gray-700 leading-relaxed">{caseData.description}</p>
           </div>
         )}
+      </div>
+    </div>
+  )
+}
+
+function InfoItem({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <div className="flex items-start gap-2">
+      <div className="text-gray-400 mt-0.5 flex-shrink-0">{icon}</div>
+      <div className="min-w-0">
+        <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">{label}</p>
+        <p className="text-sm font-semibold text-gray-800 truncate">{value}</p>
       </div>
     </div>
   )
