@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition, useCallback } from 'react'
+import { useState } from 'react'
 import { format, parseISO } from 'date-fns'
 import { ImportanceBadge } from '@/components/importance-badge'
 import { AttachmentViewer } from '@/components/attachment-viewer'
@@ -14,9 +14,8 @@ import { toast } from 'sonner'
 import type { Event, Case, SortOrder } from '@/lib/types'
 import {
   ArrowUpDown, Plus, Pencil, Trash2, ChevronDown, ChevronUp,
-  FileText, MessageSquare, AlertCircle, Loader2
+  FileText, MessageSquare
 } from 'lucide-react'
-import { useRouter } from 'next/navigation'
 
 interface Props {
   caseData: Case
@@ -25,23 +24,11 @@ interface Props {
 }
 
 export function EventSheet({ caseData, events: initialEvents, isAdmin }: Props) {
-  const router = useRouter()
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc')
-  const [events, setEvents] = useState<Event[]>(initialEvents)
+  const [events] = useState<Event[]>(initialEvents)
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set())
   const [addEventOpen, setAddEventOpen] = useState(false)
   const [editEvent, setEditEvent] = useState<Event | null>(null)
-  const [refreshing, setRefreshing] = useState(false)
-  const [, startTransition] = useTransition()
-
-  const refreshPage = useCallback(() => {
-    setRefreshing(true)
-    startTransition(() => {
-      router.refresh()
-      // Give Next.js time to complete the refresh, then hide overlay
-      setTimeout(() => setRefreshing(false), 800)
-    })
-  }, [router, startTransition])
 
   const sorted = [...events].sort((a, b) => {
     const diff = a.event_date.localeCompare(b.event_date)
@@ -63,7 +50,7 @@ export function EventSheet({ caseData, events: initialEvents, isAdmin }: Props) 
       toast.error(result.error)
     } else {
       toast.success('Event deleted')
-      refreshPage()
+      window.location.reload()
     }
   }
 
@@ -74,20 +61,12 @@ export function EventSheet({ caseData, events: initialEvents, isAdmin }: Props) 
       toast.error(result.error)
     } else {
       toast.success('Attachment deleted')
-      refreshPage()
+      window.location.reload()
     }
   }
 
   return (
-    <div className="relative space-y-4">
-      {refreshing && (
-        <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/60 backdrop-blur-sm rounded-xl">
-          <div className="flex items-center gap-2 bg-white border border-gray-200 shadow-md rounded-full px-4 py-2 text-sm font-medium text-gray-700">
-            <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
-            Refreshing...
-          </div>
-        </div>
-      )}
+    <div className="space-y-4">
       {/* Controls */}
       <div className="flex items-center justify-between">
         <Button
@@ -163,7 +142,7 @@ export function EventSheet({ caseData, events: initialEvents, isAdmin }: Props) 
                         </div>
                       </div>
                       {isAdmin && (
-                        <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100">
+                        <div className="flex items-center gap-1 flex-shrink-0">
                           <button
                             onClick={() => setEditEvent(event)}
                             className="p-1 rounded hover:bg-blue-100 text-gray-400 hover:text-blue-600"
@@ -241,7 +220,7 @@ export function EventSheet({ caseData, events: initialEvents, isAdmin }: Props) 
                           {isAdmin && (
                             <FileUploader
                               eventId={event.id}
-                              onUploaded={refreshPage}
+                              onUploaded={() => window.location.reload()}
                             />
                           )}
                         </div>
@@ -304,7 +283,7 @@ export function EventSheet({ caseData, events: initialEvents, isAdmin }: Props) 
               caseId={caseData.id}
               onSuccess={() => {
                 setAddEventOpen(false)
-                refreshPage()
+                window.location.reload()
               }}
             />
           </DialogContent>
@@ -323,7 +302,7 @@ export function EventSheet({ caseData, events: initialEvents, isAdmin }: Props) 
               existing={editEvent}
               onSuccess={() => {
                 setEditEvent(null)
-                refreshPage()
+                window.location.reload()
               }}
             />
           </DialogContent>
