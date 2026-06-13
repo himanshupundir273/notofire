@@ -89,10 +89,10 @@ export function EventSheet({ caseData, events: initialEvents, isAdmin }: Props) 
 
       {/* ── DESKTOP TABLE (md+) ── */}
       <div className="hidden md:block rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
-        <div className="grid grid-cols-[3rem_1fr_9rem_8rem] bg-gradient-to-r from-gray-900 to-gray-700 text-white text-sm font-semibold">
+        <div className="grid grid-cols-[3rem_9rem_1fr_8rem] bg-gradient-to-r from-gray-900 to-gray-700 text-white text-sm font-semibold">
           <div className="px-4 py-3.5 text-center">#</div>
-          <div className="px-4 py-3.5">Event Description</div>
           <div className="px-4 py-3.5 text-center">Date</div>
+          <div className="px-4 py-3.5">Event Description</div>
           <div className="px-4 py-3.5 text-center">Details</div>
         </div>
 
@@ -106,12 +106,17 @@ export function EventSheet({ caseData, events: initialEvents, isAdmin }: Props) 
 
             return (
               <div key={event.id} className="border-t border-gray-100">
-                <div className={`grid grid-cols-[3rem_1fr_9rem_8rem] items-center hover:bg-blue-50/40 transition-colors ${
+                <div className={`grid grid-cols-[3rem_9rem_1fr_8rem] items-center hover:bg-blue-50/40 transition-colors ${
                   idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/60'
                 }`}>
                   <div className="px-4 py-3.5 text-center">
                     <span className="text-sm font-mono text-gray-400 font-semibold">
                       {String(idx + 1).padStart(2, '0')}
+                    </span>
+                  </div>
+                  <div className="px-4 py-3.5 text-center">
+                    <span className="text-sm text-gray-700 font-medium whitespace-nowrap">
+                      {format(parseISO(event.event_date), 'dd MMM yyyy')}
                     </span>
                   </div>
                   <div className="px-4 py-3.5">
@@ -152,11 +157,6 @@ export function EventSheet({ caseData, events: initialEvents, isAdmin }: Props) 
                         </div>
                       )}
                     </div>
-                  </div>
-                  <div className="px-4 py-3.5 text-center">
-                    <span className="text-sm text-gray-700 font-medium whitespace-nowrap">
-                      {format(parseISO(event.event_date), 'dd MMM yyyy')}
-                    </span>
                   </div>
                   <div className="px-4 py-3.5 text-center">
                     {(hasDetails || isAdmin) ? (
