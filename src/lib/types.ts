@@ -23,7 +23,6 @@ export interface Event {
   final_remark: string | null
   created_at: string
   attachments?: Attachment[]
-  event_comments?: EventComment[]
 }
 
 export interface Attachment {
@@ -32,14 +31,6 @@ export interface Attachment {
   file_name: string
   file_type: string
   file_url: string
-  created_at: string
-}
-
-export interface EventComment {
-  id: string
-  event_id: string
-  content: string
-  author: string
   created_at: string
 }
 

@@ -10,7 +10,6 @@ import {
   ArrowUpDown, FileText, ChevronDown, ChevronUp,
   MessageSquare, Paperclip, Calendar
 } from 'lucide-react'
-import { EventComments } from '@/components/event-comments'
 
 export function EventSheetPublic({ events }: { events: Event[] }) {
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc')
@@ -128,15 +127,6 @@ export function EventSheetPublic({ events }: { events: Event[] }) {
                         </div>
                       </div>
                     )}
-                    {(event.event_comments?.length ?? 0) > 0 && (
-                      <div className="border-t border-blue-100 pt-3">
-                        <EventComments
-                          eventId={event.id}
-                          comments={event.event_comments ?? []}
-                          isAdmin={false}
-                        />
-                      </div>
-                    )}
                   </div>
                 )}
               </div>
@@ -212,15 +202,6 @@ export function EventSheetPublic({ events }: { events: Event[] }) {
                             <AttachmentViewer key={att.id} attachment={att} />
                           ))}
                         </div>
-                      </div>
-                    )}
-                    {(event.event_comments?.length ?? 0) > 0 && (
-                      <div className="border-t border-blue-100 pt-3">
-                        <EventComments
-                          eventId={event.id}
-                          comments={event.event_comments ?? []}
-                          isAdmin={false}
-                        />
                       </div>
                     )}
                   </div>

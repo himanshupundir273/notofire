@@ -10,9 +10,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { EventForm } from '@/components/admin/event-form'
 import { deleteEvent } from '@/lib/actions/events'
 import { deleteAttachment } from '@/lib/actions/attachments'
-import { EventComments } from '@/components/event-comments'
 import { toast } from 'sonner'
-import type { Event, Case, SortOrder, EventComment } from '@/lib/types'
+import type { Event, Case, SortOrder } from '@/lib/types'
 import {
   ArrowUpDown, Plus, Pencil, Trash2, ChevronDown, ChevronUp,
   FileText, MessageSquare, Paperclip, Calendar
@@ -178,7 +177,6 @@ export function EventSheet({ caseData, events: initialEvents, isAdmin }: Props) 
                   <ExpandedDetails
                     event={event}
                     attachments={attachments}
-                    comments={event.event_comments ?? []}
                     isAdmin={isAdmin}
                     onEdit={() => setEditEvent(event)}
                     onDelete={() => handleDeleteEvent(event.id)}
@@ -263,7 +261,6 @@ export function EventSheet({ caseData, events: initialEvents, isAdmin }: Props) 
                   <ExpandedDetails
                     event={event}
                     attachments={attachments}
-                    comments={event.event_comments ?? []}
                     isAdmin={isAdmin}
                     onEdit={() => setEditEvent(event)}
                     onDelete={() => handleDeleteEvent(event.id)}
@@ -317,20 +314,17 @@ export function EventSheet({ caseData, events: initialEvents, isAdmin }: Props) 
 }
 
 function ExpandedDetails({
-  event, attachments, comments, isAdmin, onEdit, onDelete, onDeleteAttachment
+  event, attachments, isAdmin, onEdit, onDelete, onDeleteAttachment
 }: {
   event: Event
   attachments: NonNullable<Event['attachments']>
-  comments: EventComment[]
   isAdmin?: boolean
   onEdit: () => void
   onDelete: () => void
   onDeleteAttachment: (id: string, url: string) => void
 }) {
   return (
-    <div className="bg-gradient-to-b from-blue-50/60 to-white px-4 sm:px-6 py-4 border-t border-blue-100 space-y-5">
-
-      {/* Remarks */}
+    <div className="bg-gradient-to-b from-blue-50/60 to-white px-4 sm:px-6 py-4 border-t border-blue-100 space-y-4">
       {(event.internal_remark || event.final_remark) && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {event.internal_remark && (
@@ -348,14 +342,16 @@ function ExpandedDetails({
         </div>
       )}
 
-      {/* Attachments + Upload */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
+      <div>
+        <div className="flex items-center justify-between mb-2">
           <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">
-            Documents {attachments.length > 0 && `(${attachments.length})`}
+            Attachments {attachments.length > 0 && `(${attachments.length})`}
           </p>
           {isAdmin && (
-            <FileUploader eventId={event.id} onUploaded={() => window.location.reload()} />
+            <FileUploader
+              eventId={event.id}
+              onUploaded={() => window.location.reload()}
+            />
           )}
         </div>
         {attachments.length > 0 ? (
@@ -370,24 +366,12 @@ function ExpandedDetails({
             ))}
           </div>
         ) : (
-          <p className="text-xs text-gray-400 italic">
-            {isAdmin ? 'No documents yet — use "Attach Files" above to add.' : 'No documents attached.'}
-          </p>
+          <p className="text-xs text-gray-400 italic">No attachments yet</p>
         )}
       </div>
 
-      {/* Comments */}
-      <div className="border-t border-blue-100 pt-4">
-        <EventComments
-          eventId={event.id}
-          comments={comments}
-          isAdmin={isAdmin}
-        />
-      </div>
-
-      {/* Admin actions */}
       {isAdmin && (
-        <div className="flex gap-2 pt-1 border-t border-blue-100">
+        <div className="flex gap-2 pt-2 border-t border-blue-100">
           <Button variant="outline" size="sm" onClick={onEdit} className="gap-1.5 text-xs">
             <Pencil className="h-3.5 w-3.5" /> Edit Event
           </Button>
