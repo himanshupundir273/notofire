@@ -23,7 +23,7 @@ export default async function AdminCasePage({ params }: { params: Promise<{ code
 
   const { data: events } = await supabase
     .from('events')
-    .select('*, attachments(*)')
+    .select('*, attachments(*), event_comments(*)')
     .eq('case_id', caseData.id)
     .order('event_date', { ascending: true })
 
