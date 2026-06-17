@@ -11,11 +11,12 @@ import { EventForm } from '@/components/admin/event-form'
 import { deleteEvent } from '@/lib/actions/events'
 import { deleteAttachment } from '@/lib/actions/attachments'
 import { toast } from 'sonner'
-import type { Event, Case, SortOrder } from '@/lib/types'
+import type { Event, Case, SortOrder, EventComment } from '@/lib/types'
 import {
   ArrowUpDown, Plus, Pencil, Trash2, ChevronDown, ChevronUp,
-  FileText, MessageSquare, Paperclip, Calendar
+  FileText, MessageSquare, Paperclip, Calendar, Link2, ExternalLink
 } from 'lucide-react'
+import { EventComments } from '@/components/event-comments'
 
 interface Props {
   caseData: Case
@@ -314,17 +315,22 @@ export function EventSheet({ caseData, events: initialEvents, isAdmin }: Props) 
 }
 
 function ExpandedDetails({
-  event, attachments, isAdmin, onEdit, onDelete, onDeleteAttachment
+  event, attachments, comments, isAdmin, onEdit, onDelete, onDeleteAttachment
 }: {
   event: Event
   attachments: NonNullable<Event['attachments']>
+  comments: EventComment[]
   isAdmin?: boolean
   onEdit: () => void
   onDelete: () => void
   onDeleteAttachment: (id: string, url: string) => void
 }) {
+  const links = event.links ?? []
+
   return (
-    <div className="bg-gradient-to-b from-blue-50/60 to-white px-4 sm:px-6 py-4 border-t border-blue-100 space-y-4">
+    <div className="bg-gradient-to-b from-blue-50/60 to-white px-4 sm:px-6 py-4 border-t border-blue-100 space-y-5">
+
+      {/* Remarks */}
       {(event.internal_remark || event.final_remark) && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {event.internal_remark && (
@@ -342,36 +348,61 @@ function ExpandedDetails({
         </div>
       )}
 
-      <div>
-        <div className="flex items-center justify-between mb-2">
+      {/* Links */}
+      {links.length > 0 && (
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Link2 className="h-3.5 w-3.5 text-blue-500" />
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Links ({links.length})</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {links.map((link, idx) => (
+              <a
+                key={idx}
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg px-3 py-1.5 transition-colors"
+              >
+                <ExternalLink className="h-3.5 w-3.5 flex-shrink-0" />
+                <span className="truncate max-w-[200px]">{link.label}</span>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Attachments + Upload */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
           <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">
-            Attachments {attachments.length > 0 && `(${attachments.length})`}
+            Documents {attachments.length > 0 && `(${attachments.length})`}
           </p>
           {isAdmin && (
-            <FileUploader
-              eventId={event.id}
-              onUploaded={() => window.location.reload()}
-            />
+            <FileUploader eventId={event.id} onUploaded={() => window.location.reload()} />
           )}
         </div>
         {attachments.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {attachments.map(att => (
-              <AttachmentViewer
-                key={att.id}
-                attachment={att}
-                isAdmin={isAdmin}
-                onDelete={onDeleteAttachment}
-              />
+              <AttachmentViewer key={att.id} attachment={att} isAdmin={isAdmin} onDelete={onDeleteAttachment} />
             ))}
           </div>
         ) : (
-          <p className="text-xs text-gray-400 italic">No attachments yet</p>
+          <p className="text-xs text-gray-400 italic">
+            {isAdmin ? 'No documents yet — use "Attach Files" above to add.' : 'No documents attached.'}
+          </p>
         )}
       </div>
 
+      {/* Comments */}
+      <div className="border-t border-blue-100 pt-4">
+        <EventComments eventId={event.id} comments={comments} isAdmin={isAdmin} />
+      </div>
+
+      {/* Admin actions */}
       {isAdmin && (
-        <div className="flex gap-2 pt-2 border-t border-blue-100">
+        <div className="flex gap-2 pt-1 border-t border-blue-100">
           <Button variant="outline" size="sm" onClick={onEdit} className="gap-1.5 text-xs">
             <Pencil className="h-3.5 w-3.5" /> Edit Event
           </Button>

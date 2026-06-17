@@ -22,7 +22,13 @@ export interface Event {
   internal_remark: string | null
   final_remark: string | null
   created_at: string
+  links?: EventLink[]
   attachments?: Attachment[]
+}
+
+export interface EventLink {
+  label: string
+  url: string
 }
 
 export interface Attachment {

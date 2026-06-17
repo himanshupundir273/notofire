@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import type { Importance } from '@/lib/types'
+import type { Importance, EventLink } from '@/lib/types'
 
 export async function createEvent(data: {
   case_id: string
@@ -11,6 +11,7 @@ export async function createEvent(data: {
   importance: Importance
   internal_remark?: string
   final_remark?: string
+  links?: EventLink[]
 }) {
   const supabase = await createClient()
   const { data: event, error } = await supabase
@@ -29,6 +30,7 @@ export async function updateEvent(id: string, data: Partial<{
   importance: Importance
   internal_remark: string
   final_remark: string
+  links: EventLink[]
 }>) {
   const supabase = await createClient()
   const { error } = await supabase.from('events').update(data).eq('id', id)

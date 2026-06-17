@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import type { Event, SortOrder } from '@/lib/types'
 import {
   ArrowUpDown, FileText, ChevronDown, ChevronUp,
-  MessageSquare, Paperclip, Calendar
+  MessageSquare, Paperclip, Calendar, Link2, ExternalLink
 } from 'lucide-react'
 
 export function EventSheetPublic({ events }: { events: Event[] }) {
@@ -190,6 +190,30 @@ function PublicExpandedDetails({ event, attachments }: {
         <div className="bg-white rounded-xl border border-green-200 p-3">
           <p className="text-xs font-bold text-green-600 uppercase tracking-wider mb-1.5">Remark</p>
           <p className="text-sm text-gray-700 leading-relaxed">{event.final_remark}</p>
+        </div>
+      )}
+
+      {/* Links */}
+      {(event.links ?? []).length > 0 && (
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Link2 className="h-3.5 w-3.5 text-blue-500" />
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Links</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {(event.links ?? []).map((link, idx) => (
+              <a
+                key={idx}
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg px-3 py-1.5 transition-colors"
+              >
+                <ExternalLink className="h-3.5 w-3.5 flex-shrink-0" />
+                <span className="truncate max-w-[200px]">{link.label}</span>
+              </a>
+            ))}
+          </div>
         </div>
       )}
 

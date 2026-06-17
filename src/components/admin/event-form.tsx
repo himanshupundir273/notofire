@@ -11,14 +11,14 @@ import { saveAttachmentRecord } from '@/lib/actions/attachments'
 import { createClient } from '@/lib/supabase/client'
 import { VoiceRecorder } from '@/components/voice-recorder'
 import { toast } from 'sonner'
-import type { Event, Importance } from '@/lib/types'
-import { Loader2, Camera, X, ImageIcon, Music } from 'lucide-react'
+import type { Event, Importance, EventLink } from '@/lib/types'
+import { Loader2, Camera, X, ImageIcon, Link2, Plus, ExternalLink } from 'lucide-react'
 import { format } from 'date-fns'
 
 interface PendingFile {
   id: string
   file: File
-  preview?: string // for images
+  preview?: string
 }
 
 interface Props {
@@ -32,9 +32,25 @@ export function EventForm({ caseId, existing, onSuccess }: Props) {
   const [importance, setImportance] = useState<Importance>(existing?.importance ?? 'medium')
   const [voiceFile, setVoiceFile] = useState<File | null>(null)
   const [imageFiles, setImageFiles] = useState<PendingFile[]>([])
-  const [audioFiles, setAudioFiles] = useState<PendingFile[]>([])
   const imageInputRef = useRef<HTMLInputElement>(null)
-  const audioInputRef = useRef<HTMLInputElement>(null)
+
+  // Links state
+  const [links, setLinks] = useState<EventLink[]>(existing?.links ?? [])
+  const [linkUrl, setLinkUrl] = useState('')
+  const [linkLabel, setLinkLabel] = useState('')
+
+  function addLink() {
+    const url = linkUrl.trim()
+    if (!url) return
+    const fullUrl = url.startsWith('http://') || url.startsWith('https://') ? url : `https://${url}`
+    setLinks(prev => [...prev, { label: linkLabel.trim() || fullUrl, url: fullUrl }])
+    setLinkUrl('')
+    setLinkLabel('')
+  }
+
+  function removeLink(idx: number) {
+    setLinks(prev => prev.filter((_, i) => i !== idx))
+  }
 
   function addImages(files: FileList | null) {
     if (!files?.length) return
@@ -44,19 +60,6 @@ export function EventForm({ caseId, existing, onSuccess }: Props) {
       preview: file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined,
     }))
     setImageFiles(prev => [...prev, ...newFiles])
-  }
-
-  function addAudioFiles(files: FileList | null) {
-    if (!files?.length) return
-    const newFiles: PendingFile[] = Array.from(files).map(file => ({
-      id: `${Date.now()}-${Math.random()}`,
-      file,
-    }))
-    setAudioFiles(prev => [...prev, ...newFiles])
-  }
-
-  function removeAudioFile(id: string) {
-    setAudioFiles(prev => prev.filter(f => f.id !== id))
   }
 
   function removeImage(id: string) {
@@ -71,7 +74,6 @@ export function EventForm({ caseId, existing, onSuccess }: Props) {
     const supabase = createClient()
     const allFiles: File[] = [
       ...imageFiles.map(f => f.file),
-      ...audioFiles.map(f => f.file),
       ...(voiceFile ? [voiceFile] : []),
     ]
     for (const file of allFiles) {
@@ -106,6 +108,7 @@ export function EventForm({ caseId, existing, onSuccess }: Props) {
       importance,
       internal_remark: fd.get('internal_remark') as string || undefined,
       final_remark: fd.get('final_remark') as string || undefined,
+      links: links.length > 0 ? links : undefined,
     }
 
     const result = existing
@@ -118,9 +121,8 @@ export function EventForm({ caseId, existing, onSuccess }: Props) {
       return
     }
 
-    // Upload pending files if any
     const eventId = existing?.id ?? (result as { data: { id: string } }).data?.id
-    const hasPending = imageFiles.length > 0 || audioFiles.length > 0 || voiceFile
+    const hasPending = imageFiles.length > 0 || voiceFile
     if (eventId && hasPending) {
       toast.loading('Uploading files…', { id: 'upload' })
       await uploadPendingFiles(eventId)
@@ -158,9 +160,7 @@ export function EventForm({ caseId, existing, onSuccess }: Props) {
         <div className="space-y-1.5">
           <Label>Importance</Label>
           <Select value={importance} onValueChange={v => setImportance(v as Importance)}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
+            <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="low">🟢 Low</SelectItem>
               <SelectItem value="medium">🟡 Medium</SelectItem>
@@ -174,23 +174,73 @@ export function EventForm({ caseId, existing, onSuccess }: Props) {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label htmlFor="internal_remark">Internal Remark</Label>
-          <Textarea
-            id="internal_remark"
-            name="internal_remark"
-            defaultValue={existing?.internal_remark ?? ''}
-            rows={2}
-            placeholder="Internal notes (not visible publicly)…"
-          />
+          <Textarea id="internal_remark" name="internal_remark" defaultValue={existing?.internal_remark ?? ''} rows={2} placeholder="Internal notes (not visible publicly)…" />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="final_remark">Final Remark</Label>
-          <Textarea
-            id="final_remark"
-            name="final_remark"
-            defaultValue={existing?.final_remark ?? ''}
-            rows={2}
-            placeholder="Final conclusion or outcome…"
-          />
+          <Textarea id="final_remark" name="final_remark" defaultValue={existing?.final_remark ?? ''} rows={2} placeholder="Final conclusion or outcome…" />
+        </div>
+      </div>
+
+      {/* Links */}
+      <div className="space-y-2 rounded-xl border border-dashed border-blue-200 bg-blue-50/40 p-4">
+        <div className="flex items-center gap-2">
+          <Link2 className="h-3.5 w-3.5 text-blue-500" />
+          <p className="text-xs font-bold text-blue-700 uppercase tracking-wider">Links (optional)</p>
+        </div>
+
+        {/* Existing links */}
+        {links.length > 0 && (
+          <div className="space-y-1.5">
+            {links.map((link, idx) => (
+              <div key={idx} className="flex items-center gap-2 bg-white rounded-lg border border-blue-100 px-3 py-2">
+                <Link2 className="h-3.5 w-3.5 text-blue-400 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-800 truncate">{link.label}</p>
+                  <p className="text-xs text-blue-500 truncate">{link.url}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeLink(idx)}
+                  className="flex-shrink-0 p-1 rounded hover:bg-red-100 text-gray-400 hover:text-red-500 transition-colors"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Add link inputs */}
+        <div className="space-y-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <Input
+              type="text"
+              value={linkLabel}
+              onChange={e => setLinkLabel(e.target.value)}
+              placeholder="Label (e.g. Court Order)"
+              className="text-sm bg-white"
+            />
+            <Input
+              type="url"
+              value={linkUrl}
+              onChange={e => setLinkUrl(e.target.value)}
+              placeholder="URL (e.g. https://...)"
+              className="text-sm bg-white"
+              onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addLink() } }}
+            />
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={addLink}
+            disabled={!linkUrl.trim()}
+            className="gap-2 border-blue-200 text-blue-700 hover:bg-blue-50"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            Add Link
+          </Button>
         </div>
       </div>
 
@@ -204,18 +254,13 @@ export function EventForm({ caseId, existing, onSuccess }: Props) {
           {/* Voice recorder */}
           <div className="space-y-1.5">
             <p className="text-xs text-gray-500 font-medium">Voice Note</p>
-            <VoiceRecorder
-              recording={voiceFile}
-              onRecorded={setVoiceFile}
-              onRemove={() => setVoiceFile(null)}
-            />
+            <VoiceRecorder recording={voiceFile} onRecorded={setVoiceFile} onRemove={() => setVoiceFile(null)} />
           </div>
 
           {/* Image / photo capture */}
           <div className="space-y-2">
             <p className="text-xs text-gray-500 font-medium">Photos / Images</p>
             <div className="flex flex-wrap gap-2">
-              {/* Camera capture (mobile) */}
               <Button
                 type="button"
                 variant="outline"
@@ -231,7 +276,6 @@ export function EventForm({ caseId, existing, onSuccess }: Props) {
                 <Camera className="h-4 w-4 text-blue-500" />
                 Take Photo
               </Button>
-              {/* Gallery picker */}
               <Button
                 type="button"
                 variant="outline"
@@ -257,17 +301,12 @@ export function EventForm({ caseId, existing, onSuccess }: Props) {
               />
             </div>
 
-            {/* Image previews */}
             {imageFiles.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-2">
                 {imageFiles.map(f => (
                   <div key={f.id} className="relative group">
                     {f.preview ? (
-                      <img
-                        src={f.preview}
-                        alt={f.file.name}
-                        className="w-20 h-20 object-cover rounded-lg border border-gray-200"
-                      />
+                      <img src={f.preview} alt={f.file.name} className="w-20 h-20 object-cover rounded-lg border border-gray-200" />
                     ) : (
                       <div className="w-20 h-20 rounded-lg border border-gray-200 bg-gray-100 flex items-center justify-center text-xs text-gray-500 text-center px-1">
                         {f.file.name}
@@ -289,7 +328,6 @@ export function EventForm({ caseId, existing, onSuccess }: Props) {
             )}
           </div>
 
-          {/* Summary */}
           {(imageFiles.length > 0 || voiceFile) && (
             <p className="text-xs text-blue-600 font-medium">
               {[
