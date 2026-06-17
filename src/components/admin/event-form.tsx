@@ -12,7 +12,7 @@ import { createClient } from '@/lib/supabase/client'
 import { VoiceRecorder } from '@/components/voice-recorder'
 import { toast } from 'sonner'
 import type { Event, Importance } from '@/lib/types'
-import { Loader2, Camera, X, ImageIcon } from 'lucide-react'
+import { Loader2, Camera, X, ImageIcon, Music } from 'lucide-react'
 import { format } from 'date-fns'
 
 interface PendingFile {
@@ -32,7 +32,9 @@ export function EventForm({ caseId, existing, onSuccess }: Props) {
   const [importance, setImportance] = useState<Importance>(existing?.importance ?? 'medium')
   const [voiceFile, setVoiceFile] = useState<File | null>(null)
   const [imageFiles, setImageFiles] = useState<PendingFile[]>([])
+  const [audioFiles, setAudioFiles] = useState<PendingFile[]>([])
   const imageInputRef = useRef<HTMLInputElement>(null)
+  const audioInputRef = useRef<HTMLInputElement>(null)
 
   function addImages(files: FileList | null) {
     if (!files?.length) return
@@ -42,6 +44,19 @@ export function EventForm({ caseId, existing, onSuccess }: Props) {
       preview: file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined,
     }))
     setImageFiles(prev => [...prev, ...newFiles])
+  }
+
+  function addAudioFiles(files: FileList | null) {
+    if (!files?.length) return
+    const newFiles: PendingFile[] = Array.from(files).map(file => ({
+      id: `${Date.now()}-${Math.random()}`,
+      file,
+    }))
+    setAudioFiles(prev => [...prev, ...newFiles])
+  }
+
+  function removeAudioFile(id: string) {
+    setAudioFiles(prev => prev.filter(f => f.id !== id))
   }
 
   function removeImage(id: string) {
@@ -56,6 +71,7 @@ export function EventForm({ caseId, existing, onSuccess }: Props) {
     const supabase = createClient()
     const allFiles: File[] = [
       ...imageFiles.map(f => f.file),
+      ...audioFiles.map(f => f.file),
       ...(voiceFile ? [voiceFile] : []),
     ]
     for (const file of allFiles) {
@@ -104,7 +120,7 @@ export function EventForm({ caseId, existing, onSuccess }: Props) {
 
     // Upload pending files if any
     const eventId = existing?.id ?? (result as { data: { id: string } }).data?.id
-    const hasPending = imageFiles.length > 0 || voiceFile
+    const hasPending = imageFiles.length > 0 || audioFiles.length > 0 || voiceFile
     if (eventId && hasPending) {
       toast.loading('Uploading files…', { id: 'upload' })
       await uploadPendingFiles(eventId)

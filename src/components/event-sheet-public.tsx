@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { format, parseISO } from 'date-fns'
 import { ImportanceBadge } from '@/components/importance-badge'
 import { AttachmentViewer } from '@/components/attachment-viewer'
+import { FileUploader } from '@/components/file-uploader'
+import { EventComments } from '@/components/event-comments'
 import { Button } from '@/components/ui/button'
 import type { Event, SortOrder } from '@/lib/types'
 import {
@@ -59,7 +61,7 @@ export function EventSheetPublic({ events }: { events: Event[] }) {
           sorted.map((event, idx) => {
             const isExpanded = expandedRows.has(event.id)
             const attachments = event.attachments ?? []
-            const hasDetails = event.final_remark || attachments.length > 0
+            const hasDetails = true // always show View — anyone can comment/upload
 
             return (
               <div key={event.id} className="border-t border-gray-100">
@@ -108,26 +110,7 @@ export function EventSheetPublic({ events }: { events: Event[] }) {
                 </div>
 
                 {isExpanded && (
-                  <div className="bg-gradient-to-b from-blue-50/60 to-white px-6 py-4 border-t border-blue-100 space-y-4">
-                    {event.final_remark && (
-                      <div className="bg-white rounded-xl border border-green-200 p-3 max-w-xl">
-                        <p className="text-xs font-bold text-green-600 uppercase tracking-wider mb-1.5">Remark</p>
-                        <p className="text-sm text-gray-700 leading-relaxed">{event.final_remark}</p>
-                      </div>
-                    )}
-                    {attachments.length > 0 && (
-                      <div>
-                        <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                          Attachments ({attachments.length})
-                        </p>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                          {attachments.map(att => (
-                            <AttachmentViewer key={att.id} attachment={att} />
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                  <PublicExpandedDetails event={event} attachments={attachments} />
                 )}
               </div>
             )
@@ -145,7 +128,7 @@ export function EventSheetPublic({ events }: { events: Event[] }) {
           sorted.map((event, idx) => {
             const isExpanded = expandedRows.has(event.id)
             const attachments = event.attachments ?? []
-            const hasDetails = event.final_remark || attachments.length > 0
+            const hasDetails = true // always show View — anyone can comment/upload
 
             return (
               <div key={event.id} className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
@@ -185,31 +168,60 @@ export function EventSheetPublic({ events }: { events: Event[] }) {
                 )}
 
                 {isExpanded && (
-                  <div className="bg-gradient-to-b from-blue-50/60 to-white px-4 py-4 border-t border-blue-100 space-y-3">
-                    {event.final_remark && (
-                      <div className="bg-white rounded-xl border border-green-200 p-3">
-                        <p className="text-xs font-bold text-green-600 uppercase tracking-wider mb-1.5">Remark</p>
-                        <p className="text-sm text-gray-700 leading-relaxed">{event.final_remark}</p>
-                      </div>
-                    )}
-                    {attachments.length > 0 && (
-                      <div>
-                        <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
-                          Attachments ({attachments.length})
-                        </p>
-                        <div className="space-y-2">
-                          {attachments.map(att => (
-                            <AttachmentViewer key={att.id} attachment={att} />
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                  <PublicExpandedDetails event={event} attachments={attachments} />
                 )}
               </div>
             )
           })
         )}
+      </div>
+    </div>
+  )
+}
+
+function PublicExpandedDetails({ event, attachments }: {
+  event: Event
+  attachments: NonNullable<Event['attachments']>
+}) {
+  return (
+    <div className="bg-gradient-to-b from-blue-50/60 to-white px-4 sm:px-6 py-5 border-t border-blue-100 space-y-5">
+      {/* Final remark */}
+      {event.final_remark && (
+        <div className="bg-white rounded-xl border border-green-200 p-3">
+          <p className="text-xs font-bold text-green-600 uppercase tracking-wider mb-1.5">Remark</p>
+          <p className="text-sm text-gray-700 leading-relaxed">{event.final_remark}</p>
+        </div>
+      )}
+
+      {/* Documents — view + upload */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+            Documents {attachments.length > 0 && `(${attachments.length})`}
+          </p>
+          <FileUploader
+            eventId={event.id}
+            onUploaded={() => window.location.reload()}
+          />
+        </div>
+        {attachments.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {attachments.map(att => (
+              <AttachmentViewer key={att.id} attachment={att} />
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-gray-400 italic">No documents yet — use "Attach Files" to add one.</p>
+        )}
+      </div>
+
+      {/* Comments */}
+      <div className="border-t border-blue-100 pt-4">
+        <EventComments
+          eventId={event.id}
+          comments={event.event_comments ?? []}
+          isAdmin={false}
+        />
       </div>
     </div>
   )

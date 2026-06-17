@@ -1,16 +1,18 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 
 // Called after client-side direct upload to Supabase Storage
+// Uses admin client so public (unauthenticated) uploads work too
 export async function saveAttachmentRecord(data: {
   event_id: string
   file_name: string
   file_type: string
   file_url: string
 }) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data: record, error } = await supabase
     .from('attachments')
     .insert(data)
