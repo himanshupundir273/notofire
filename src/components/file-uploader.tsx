@@ -3,7 +3,7 @@
 import { useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Paperclip, Loader2, CheckCircle2, XCircle } from 'lucide-react'
-import { ACCEPTED_TYPES } from '@/lib/utils/file'
+import { ACCEPTED_TYPES, getMimeFromExtension } from '@/lib/utils/file'
 import { saveAttachmentRecord } from '@/lib/actions/attachments'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
@@ -35,11 +35,12 @@ export function FileUploader({ eventId, onUploaded }: Props) {
       const file = fileArray[i]
       try {
         const path = `${eventId}/${Date.now()}-${file.name}`
+        const contentType = file.type || getMimeFromExtension(file.name)
 
         // Upload directly from browser — no Next.js body limit
         const { error: storageError } = await supabase.storage
           .from('case-files')
-          .upload(path, file, { contentType: file.type, upsert: false })
+          .upload(path, file, { contentType, upsert: false })
 
         if (storageError) throw new Error(storageError.message)
 
@@ -50,7 +51,7 @@ export function FileUploader({ eventId, onUploaded }: Props) {
         const result = await saveAttachmentRecord({
           event_id: eventId,
           file_name: file.name,
-          file_type: file.type,
+          file_type: contentType,
           file_url: publicUrl,
         })
 

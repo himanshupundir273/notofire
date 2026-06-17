@@ -33,6 +33,21 @@ export function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
+export function getMimeFromExtension(fileName: string): string {
+  const ext = fileName.split('.').pop()?.toLowerCase() ?? ''
+  const map: Record<string, string> = {
+    pdf: 'application/pdf',
+    doc: 'application/msword',
+    docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    xls: 'application/vnd.ms-excel',
+    xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp',
+    mp4: 'video/mp4', mov: 'video/quicktime',
+    mp3: 'audio/mpeg', wav: 'audio/wav', m4a: 'audio/x-m4a',
+  }
+  return map[ext] ?? 'application/octet-stream'
+}
+
 export function getFileIcon(mimeType: string): string {
   const cat = getFileCategory(mimeType)
   switch (cat) {

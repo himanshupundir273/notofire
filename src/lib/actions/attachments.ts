@@ -12,15 +12,19 @@ export async function saveAttachmentRecord(data: {
   file_type: string
   file_url: string
 }) {
-  const supabase = createAdminClient()
-  const { data: record, error } = await supabase
-    .from('attachments')
-    .insert(data)
-    .select()
-    .single()
-  if (error) return { error: error.message }
-  revalidatePath('/admin')
-  return { data: record }
+  try {
+    const supabase = createAdminClient()
+    const { data: record, error } = await supabase
+      .from('attachments')
+      .insert(data)
+      .select()
+      .single()
+    if (error) return { error: error.message }
+    try { revalidatePath('/admin') } catch {}
+    return { data: record }
+  } catch (err: unknown) {
+    return { error: err instanceof Error ? err.message : 'Failed to save attachment record' }
+  }
 }
 
 // Keep for backwards compat but route through client-side upload instead
