@@ -55,6 +55,8 @@ export function CaseForm({ existing, onSuccess }: Props) {
       contact_number: fd.get('contact_number') as string || undefined,
       address: fd.get('address') as string || undefined,
       description: fd.get('description') as string || undefined,
+      party_details: fd.get('party_details') as string || undefined,
+      next_update: fd.get('next_update') as string || undefined,
       importance,
       case_code: clean,
     }
@@ -151,6 +153,14 @@ export function CaseForm({ existing, onSuccess }: Props) {
         <div className="space-y-1.5 sm:col-span-2">
           <Label htmlFor="description">Description</Label>
           <Textarea id="description" name="description" defaultValue={existing?.description ?? ''} rows={3} placeholder="Case description and notes..." />
+        </div>
+        <div className="space-y-1.5 sm:col-span-2">
+          <Label htmlFor="party_details">Party Details</Label>
+          <Textarea id="party_details" name="party_details" defaultValue={existing?.party_details ?? ''} rows={2} placeholder="e.g. Petitioner: ABC | Respondent: XYZ" />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="next_update">Next Update Date</Label>
+          <Input id="next_update" name="next_update" type="date" defaultValue={existing?.next_update ?? ''} />
         </div>
       </div>
       <div className="flex gap-2 justify-end pt-2">

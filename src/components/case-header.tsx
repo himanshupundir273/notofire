@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { updateCaseImportance } from '@/lib/actions/cases'
 import { toast } from 'sonner'
 import type { Case, Importance } from '@/lib/types'
-import { Scale, User, Phone, MapPin, Calendar, Hash } from 'lucide-react'
+import { Scale, User, Phone, MapPin, Calendar, Hash, Users, Bell } from 'lucide-react'
 
 interface Props {
   caseData: Case
@@ -86,12 +86,32 @@ export function CaseHeader({ caseData, isAdmin }: Props) {
           label="Updated"
           value={format(new Date(caseData.updated_at), 'dd MMM yyyy')}
         />
+        {caseData.next_update && (
+          <div className="flex items-start gap-2">
+            <Bell className="h-4 w-4 text-orange-400 mt-0.5 flex-shrink-0" />
+            <div className="min-w-0">
+              <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">Next Update</p>
+              <p className="text-sm font-semibold text-orange-600">
+                {format(new Date(caseData.next_update), 'dd MMM yyyy')}
+              </p>
+            </div>
+          </div>
+        )}
         {caseData.address && (
           <div className="col-span-2 lg:col-span-4 flex items-start gap-2">
             <MapPin className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
             <div>
               <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">Address</p>
               <p className="text-sm font-medium text-gray-800">{caseData.address}</p>
+            </div>
+          </div>
+        )}
+        {caseData.party_details && (
+          <div className="col-span-2 lg:col-span-4 flex items-start gap-2">
+            <Users className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
+            <div className="min-w-0">
+              <p className="text-xs text-gray-400 font-medium uppercase tracking-wide mb-1">Party Details</p>
+              <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">{caseData.party_details}</p>
             </div>
           </div>
         )}

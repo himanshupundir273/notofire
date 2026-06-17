@@ -9,6 +9,8 @@ export interface Case {
   address: string | null
   description: string | null
   importance: Importance
+  party_details: string | null
+  next_update: string | null
   created_at: string
   updated_at: string
 }

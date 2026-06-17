@@ -11,6 +11,8 @@ export async function createCase(data: {
   contact_number?: string
   address?: string
   description?: string
+  party_details?: string
+  next_update?: string
   importance: Importance
   case_code?: string
 }) {
@@ -47,6 +49,8 @@ export async function updateCase(id: string, data: Partial<{
   contact_number: string
   address: string
   description: string
+  party_details: string
+  next_update: string
   importance: Importance
   case_code: string
 }>) {
