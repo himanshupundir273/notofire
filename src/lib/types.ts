@@ -24,6 +24,7 @@ export interface Event {
   created_at: string
   links?: EventLink[]
   attachments?: Attachment[]
+  event_comments?: EventComment[]
 }
 
 export interface EventLink {
@@ -37,6 +38,14 @@ export interface Attachment {
   file_name: string
   file_type: string
   file_url: string
+  created_at: string
+}
+
+export interface EventComment {
+  id: string
+  event_id: string
+  content: string
+  author: string
   created_at: string
 }
 

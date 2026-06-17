@@ -178,6 +178,7 @@ export function EventSheet({ caseData, events: initialEvents, isAdmin }: Props) 
                   <ExpandedDetails
                     event={event}
                     attachments={attachments}
+                    comments={event.event_comments ?? []}
                     isAdmin={isAdmin}
                     onEdit={() => setEditEvent(event)}
                     onDelete={() => handleDeleteEvent(event.id)}
@@ -262,6 +263,7 @@ export function EventSheet({ caseData, events: initialEvents, isAdmin }: Props) 
                   <ExpandedDetails
                     event={event}
                     attachments={attachments}
+                    comments={event.event_comments ?? []}
                     isAdmin={isAdmin}
                     onEdit={() => setEditEvent(event)}
                     onDelete={() => handleDeleteEvent(event.id)}
