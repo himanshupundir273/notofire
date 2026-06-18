@@ -3,7 +3,7 @@
 import { useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Paperclip, Loader2, CheckCircle2, XCircle } from 'lucide-react'
-import { ACCEPTED_TYPES, getMimeFromExtension } from '@/lib/utils/file'
+import { getMimeFromExtension } from '@/lib/utils/file'
 import { saveAttachmentRecord } from '@/lib/actions/attachments'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
@@ -27,8 +27,18 @@ export function FileUploader({ eventId, onUploaded }: Props) {
   async function handleFiles(files: FileList | null) {
     if (!files?.length) return
 
+    const MAX_SIZE = 50 * 1024 * 1024 // 50 MB (Supabase free tier limit)
     const supabase = createClient()
     const fileArray = Array.from(files)
+
+    // Pre-validate sizes before attempting upload
+    for (const file of fileArray) {
+      if (file.size > MAX_SIZE) {
+        toast.error(`"${file.name}" is ${(file.size / 1024 / 1024).toFixed(1)} MB — maximum allowed size is 50 MB`)
+        return
+      }
+    }
+
     setStatuses(fileArray.map(f => ({ name: f.name, status: 'uploading' })))
 
     for (let i = 0; i < fileArray.length; i++) {
@@ -42,7 +52,12 @@ export function FileUploader({ eventId, onUploaded }: Props) {
           .from('case-files')
           .upload(path, file, { contentType, upsert: false })
 
-        if (storageError) throw new Error(storageError.message)
+        if (storageError) {
+          const msg = storageError.message?.toLowerCase().includes('too large') || storageError.message?.toLowerCase().includes('payload')
+            ? `File too large — maximum size is 50 MB`
+            : storageError.message
+          throw new Error(msg)
+        }
 
         const { data: { publicUrl } } = supabase.storage
           .from('case-files')
@@ -79,7 +94,6 @@ export function FileUploader({ eventId, onUploaded }: Props) {
         ref={inputRef}
         type="file"
         multiple
-        accept={ACCEPTED_TYPES.join(',')}
         className="hidden"
         onChange={(e) => handleFiles(e.target.files)}
       />
