@@ -7,13 +7,13 @@ import { AttachmentViewer } from '@/components/attachment-viewer'
 import { FileUploader } from '@/components/file-uploader'
 import { EventComments } from '@/components/event-comments'
 import { Button } from '@/components/ui/button'
-import type { Event, SortOrder } from '@/lib/types'
+import type { Case, Event, SortOrder } from '@/lib/types'
 import {
   ArrowUpDown, FileText, ChevronDown, ChevronUp,
   MessageSquare, Paperclip, Calendar, Link2, ExternalLink
 } from 'lucide-react'
 
-export function EventSheetPublic({ events }: { events: Event[] }) {
+export function EventSheetPublic({ caseData, events }: { caseData: Case; events: Event[] }) {
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc')
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set())
 
@@ -110,7 +110,7 @@ export function EventSheetPublic({ events }: { events: Event[] }) {
                 </div>
 
                 {isExpanded && (
-                  <PublicExpandedDetails event={event} attachments={attachments} />
+                  <PublicExpandedDetails event={event} attachments={attachments} caseTitle={caseData.title} />
                 )}
               </div>
             )
@@ -168,7 +168,7 @@ export function EventSheetPublic({ events }: { events: Event[] }) {
                 )}
 
                 {isExpanded && (
-                  <PublicExpandedDetails event={event} attachments={attachments} />
+                  <PublicExpandedDetails event={event} attachments={attachments} caseTitle={caseData.title} />
                 )}
               </div>
             )
@@ -179,9 +179,10 @@ export function EventSheetPublic({ events }: { events: Event[] }) {
   )
 }
 
-function PublicExpandedDetails({ event, attachments }: {
+function PublicExpandedDetails({ event, attachments, caseTitle }: {
   event: Event
   attachments: NonNullable<Event['attachments']>
+  caseTitle: string
 }) {
   return (
     <div className="bg-gradient-to-b from-blue-50/60 to-white px-4 sm:px-6 py-5 border-t border-blue-100 space-y-5">
@@ -231,7 +232,7 @@ function PublicExpandedDetails({ event, attachments }: {
         {attachments.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {attachments.map(att => (
-              <AttachmentViewer key={att.id} attachment={att} />
+              <AttachmentViewer key={att.id} attachment={att} caseTitle={caseTitle} eventDescription={event.event_description} />
             ))}
           </div>
         ) : (

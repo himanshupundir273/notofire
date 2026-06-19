@@ -180,6 +180,8 @@ export function EventSheet({ caseData, events: initialEvents, isAdmin }: Props) 
                     attachments={attachments}
                     comments={event.event_comments ?? []}
                     isAdmin={isAdmin}
+                    caseTitle={caseData.title}
+                    defaultPhone={caseData.contact_number ?? undefined}
                     onEdit={() => setEditEvent(event)}
                     onDelete={() => handleDeleteEvent(event.id)}
                     onDeleteAttachment={handleDeleteAttachment}
@@ -265,6 +267,8 @@ export function EventSheet({ caseData, events: initialEvents, isAdmin }: Props) 
                     attachments={attachments}
                     comments={event.event_comments ?? []}
                     isAdmin={isAdmin}
+                    caseTitle={caseData.title}
+                    defaultPhone={caseData.contact_number ?? undefined}
                     onEdit={() => setEditEvent(event)}
                     onDelete={() => handleDeleteEvent(event.id)}
                     onDeleteAttachment={handleDeleteAttachment}
@@ -317,12 +321,14 @@ export function EventSheet({ caseData, events: initialEvents, isAdmin }: Props) 
 }
 
 function ExpandedDetails({
-  event, attachments, comments, isAdmin, onEdit, onDelete, onDeleteAttachment
+  event, attachments, comments, isAdmin, caseTitle, defaultPhone, onEdit, onDelete, onDeleteAttachment
 }: {
   event: Event
   attachments: NonNullable<Event['attachments']>
   comments: EventComment[]
   isAdmin?: boolean
+  caseTitle?: string
+  defaultPhone?: string
   onEdit: () => void
   onDelete: () => void
   onDeleteAttachment: (id: string, url: string) => void
@@ -387,7 +393,7 @@ function ExpandedDetails({
         {attachments.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {attachments.map(att => (
-              <AttachmentViewer key={att.id} attachment={att} isAdmin={isAdmin} onDelete={onDeleteAttachment} />
+              <AttachmentViewer key={att.id} attachment={att} isAdmin={isAdmin} onDelete={onDeleteAttachment} caseTitle={caseTitle} eventDescription={event.event_description} defaultPhone={defaultPhone} />
             ))}
           </div>
         ) : (

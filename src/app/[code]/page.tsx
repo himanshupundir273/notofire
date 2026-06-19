@@ -55,7 +55,7 @@ export default async function PublicCasePage({ params }: { params: Promise<{ cod
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-5 sm:py-7 space-y-5">
         <CaseHeader caseData={caseData as Case} isAdmin={false} />
-        <EventSheetPublic events={(events as Event[]) ?? []} />
+        <EventSheetPublic caseData={caseData as Case} events={(events as Event[]) ?? []} />
       </main>
 
       <footer className="text-center text-xs text-gray-400 py-8 border-t border-gray-200 mt-8">

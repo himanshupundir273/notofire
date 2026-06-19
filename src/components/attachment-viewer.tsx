@@ -6,14 +6,18 @@ import { Button } from '@/components/ui/button'
 import { getFileCategory, getFileIcon } from '@/lib/utils/file'
 import type { Attachment } from '@/lib/types'
 import { X, Download, FileText, Image as ImageIcon } from 'lucide-react'
+import { WhatsAppSender } from '@/components/whatsapp-sender'
 
 interface Props {
   attachment: Attachment
   onDelete?: (id: string, url: string) => void
   isAdmin?: boolean
+  caseTitle?: string
+  eventDescription?: string
+  defaultPhone?: string
 }
 
-export function AttachmentViewer({ attachment, onDelete, isAdmin }: Props) {
+export function AttachmentViewer({ attachment, onDelete, isAdmin, caseTitle, eventDescription, defaultPhone }: Props) {
   const [open, setOpen] = useState(false)
   const category = getFileCategory(attachment.file_type)
   const icon = getFileIcon(attachment.file_type)
@@ -39,6 +43,15 @@ export function AttachmentViewer({ attachment, onDelete, isAdmin }: Props) {
           >
             <Download className="h-3.5 w-3.5" />
           </a>
+          {caseTitle && (
+            <WhatsAppSender
+              caseTitle={caseTitle}
+              eventDescription={eventDescription ?? ''}
+              documentName={attachment.file_name}
+              documentUrl={attachment.file_url}
+              defaultPhone={defaultPhone}
+            />
+          )}
           {isAdmin && onDelete && (
             <button
               onClick={() => onDelete(attachment.id, attachment.file_url)}
