@@ -88,6 +88,61 @@ export async function getCases() {
   return { data }
 }
 
+export async function duplicateCase(id: string) {
+  const supabase = await createClient()
+
+  // Fetch original case
+  const { data: original, error: fetchError } = await supabase
+    .from('cases')
+    .select('*')
+    .eq('id', id)
+    .single()
+  if (fetchError || !original) return { error: 'Case not found' }
+
+  // Fetch original events
+  const { data: events } = await supabase
+    .from('events')
+    .select('*')
+    .eq('case_id', id)
+    .order('event_date', { ascending: true })
+
+  // Create new case with a fresh code and "Copy of" prefix
+  const newCode = generateCaseCode()
+  const { data: newCase, error: caseError } = await supabase
+    .from('cases')
+    .insert({
+      case_code: newCode,
+      title: `Copy of ${original.title}`,
+      client_name: original.client_name,
+      contact_number: original.contact_number,
+      address: original.address,
+      description: original.description,
+      importance: original.importance,
+      party_details: original.party_details,
+      next_update: original.next_update,
+    })
+    .select()
+    .single()
+  if (caseError || !newCase) return { error: caseError?.message ?? 'Failed to create copy' }
+
+  // Duplicate events (without attachments — files stay on original)
+  if (events && events.length > 0) {
+    const newEvents = events.map(e => ({
+      case_id: newCase.id,
+      event_description: e.event_description,
+      event_date: e.event_date,
+      importance: e.importance,
+      internal_remark: e.internal_remark,
+      final_remark: e.final_remark,
+      links: e.links ?? [],
+    }))
+    await supabase.from('events').insert(newEvents)
+  }
+
+  revalidatePath('/admin')
+  return { data: newCase }
+}
+
 export async function getCaseByCode(case_code: string) {
   const supabase = await createClient()
   const { data, error } = await supabase
