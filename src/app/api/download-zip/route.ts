@@ -53,7 +53,7 @@ export async function GET(req: NextRequest) {
 
   const safeName = caseName.replace(/[^a-z0-9]/gi, '_').toLowerCase()
 
-  return new NextResponse(zipBuffer, {
+  return new NextResponse(zipBuffer.buffer as ArrayBuffer, {
     headers: {
       'Content-Type': 'application/zip',
       'Content-Disposition': `attachment; filename="${safeName}_documents.zip"`,
