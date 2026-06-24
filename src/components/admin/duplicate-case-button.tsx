@@ -11,7 +11,7 @@ export function DuplicateCaseButton({ caseId }: { caseId: string }) {
   const router = useRouter()
 
   async function handleDuplicate() {
-    if (!confirm('Create a copy of this case (events will be copied, attachments will not)?')) return
+    if (!confirm('Create a full copy of this case including all events and file attachments? This may take a moment.')) return
     setLoading(true)
     const result = await duplicateCase(caseId)
     setLoading(false)

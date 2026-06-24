@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { revalidatePath } from 'next/cache'
 import { generateCaseCode } from '@/lib/utils/case-id'
 import type { Importance } from '@/lib/types'
@@ -90,6 +91,7 @@ export async function getCases() {
 
 export async function duplicateCase(id: string) {
   const supabase = await createClient()
+  const admin = createAdminClient()
 
   // Fetch original case
   const { data: original, error: fetchError } = await supabase
@@ -99,10 +101,10 @@ export async function duplicateCase(id: string) {
     .single()
   if (fetchError || !original) return { error: 'Case not found' }
 
-  // Fetch original events
+  // Fetch original events with their attachments
   const { data: events } = await supabase
     .from('events')
-    .select('*')
+    .select('*, attachments(*)')
     .eq('case_id', id)
     .order('event_date', { ascending: true })
 
@@ -125,18 +127,60 @@ export async function duplicateCase(id: string) {
     .single()
   if (caseError || !newCase) return { error: caseError?.message ?? 'Failed to create copy' }
 
-  // Duplicate events (without attachments — files stay on original)
-  if (events && events.length > 0) {
-    const newEvents = events.map(e => ({
-      case_id: newCase.id,
-      event_description: e.event_description,
-      event_date: e.event_date,
-      importance: e.importance,
-      internal_remark: e.internal_remark,
-      final_remark: e.final_remark,
-      links: e.links ?? [],
-    }))
-    await supabase.from('events').insert(newEvents)
+  // Duplicate events + attachments (including storage files)
+  for (const event of events ?? []) {
+    const { data: newEvent, error: eventError } = await supabase
+      .from('events')
+      .insert({
+        case_id: newCase.id,
+        event_description: event.event_description,
+        event_date: event.event_date,
+        importance: event.importance,
+        internal_remark: event.internal_remark,
+        final_remark: event.final_remark,
+        links: event.links ?? [],
+      })
+      .select()
+      .single()
+    if (eventError || !newEvent) continue
+
+    const attachments = (event.attachments as { id: string; file_name: string; file_type: string; file_url: string }[]) ?? []
+    for (const att of attachments) {
+      try {
+        // Extract storage path from URL (everything after /case-files/)
+        const srcPath = att.file_url.split('/case-files/')[1]
+        if (!srcPath) continue
+
+        // Download the file from storage
+        const { data: fileData, error: downloadError } = await admin.storage
+          .from('case-files')
+          .download(srcPath)
+        if (downloadError || !fileData) continue
+
+        // Upload to new path under new event id
+        const ext = att.file_name.includes('.') ? att.file_name.split('.').pop() : ''
+        const newPath = `${newEvent.id}/${att.file_name}`
+        const { error: uploadError } = await admin.storage
+          .from('case-files')
+          .upload(newPath, fileData, { contentType: att.file_type, upsert: true })
+        if (uploadError) continue
+
+        // Get public URL for new file
+        const { data: { publicUrl } } = admin.storage
+          .from('case-files')
+          .getPublicUrl(newPath)
+
+        // Save attachment record
+        await admin.from('attachments').insert({
+          event_id: newEvent.id,
+          file_name: att.file_name,
+          file_type: att.file_type,
+          file_url: publicUrl,
+        })
+      } catch {
+        // Skip files that fail — don't abort the whole copy
+      }
+    }
   }
 
   revalidatePath('/admin')
