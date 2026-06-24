@@ -4,10 +4,10 @@ import { useState } from 'react'
 import { format } from 'date-fns'
 import { ImportanceBadge } from '@/components/importance-badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { updateCaseImportance } from '@/lib/actions/cases'
+import { updateCaseImportance, updateCase } from '@/lib/actions/cases'
 import { toast } from 'sonner'
 import type { Case, Importance } from '@/lib/types'
-import { Scale, User, Phone, MapPin, Calendar, Hash, Users, Bell } from 'lucide-react'
+import { Scale, User, Phone, MapPin, Calendar, Hash, Users, Bell, MessageSquare, Pencil, Check, X } from 'lucide-react'
 
 interface Props {
   caseData: Case
@@ -16,6 +16,10 @@ interface Props {
 
 export function CaseHeader({ caseData, isAdmin }: Props) {
   const [importance, setImportance] = useState<Importance>(caseData.importance)
+  const [remark, setRemark] = useState(caseData.remark ?? '')
+  const [editingRemark, setEditingRemark] = useState(false)
+  const [remarkDraft, setRemarkDraft] = useState(caseData.remark ?? '')
+  const [savingRemark, setSavingRemark] = useState(false)
 
   function handleImportanceChange(value: string | null) {
     if (!value) return
@@ -28,6 +32,24 @@ export function CaseHeader({ caseData, isAdmin }: Props) {
         toast.success('Importance updated')
       }
     })
+  }
+
+  async function handleRemarkSave() {
+    setSavingRemark(true)
+    const result = await updateCase(caseData.id, { remark: remarkDraft })
+    setSavingRemark(false)
+    if (result.error) {
+      toast.error(result.error)
+    } else {
+      setRemark(remarkDraft)
+      setEditingRemark(false)
+      toast.success('Remark saved')
+    }
+  }
+
+  function handleRemarkCancel() {
+    setRemarkDraft(remark)
+    setEditingRemark(false)
   }
 
   return (
@@ -117,6 +139,57 @@ export function CaseHeader({ caseData, isAdmin }: Props) {
           <div className="col-span-2 lg:col-span-4 pt-2 border-t border-gray-100">
             <p className="text-xs text-gray-400 font-medium uppercase tracking-wide mb-1">Description</p>
             <p className="text-sm text-gray-700 leading-relaxed">{caseData.description}</p>
+          </div>
+        )}
+
+        {/* Remark */}
+        {(isAdmin || remark) && (
+          <div className="col-span-2 lg:col-span-4 pt-3 border-t border-gray-100">
+            <div className="flex items-center gap-2 mb-2">
+              <MessageSquare className="h-4 w-4 text-blue-500 flex-shrink-0" />
+              <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">Remark</p>
+              {isAdmin && !editingRemark && (
+                <button
+                  onClick={() => { setRemarkDraft(remark); setEditingRemark(true) }}
+                  className="ml-auto flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700"
+                >
+                  <Pencil className="h-3 w-3" /> Edit
+                </button>
+              )}
+            </div>
+
+            {isAdmin && editingRemark ? (
+              <div className="space-y-2">
+                <textarea
+                  value={remarkDraft}
+                  onChange={e => setRemarkDraft(e.target.value)}
+                  rows={3}
+                  placeholder="Add a remark visible to the client…"
+                  className="w-full rounded-lg border border-blue-300 bg-blue-50 px-3 py-2 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
+                  autoFocus
+                />
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleRemarkSave}
+                    disabled={savingRemark}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    <Check className="h-3.5 w-3.5" />
+                    {savingRemark ? 'Saving…' : 'Save'}
+                  </button>
+                  <button
+                    onClick={handleRemarkCancel}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 text-xs font-semibold hover:bg-gray-50"
+                  >
+                    <X className="h-3.5 w-3.5" /> Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+                {remark || <span className="text-gray-400 italic">No remark added yet</span>}
+              </p>
+            )}
           </div>
         )}
       </div>

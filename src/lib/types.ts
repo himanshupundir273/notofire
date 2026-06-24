@@ -11,6 +11,7 @@ export interface Case {
   importance: Importance
   party_details: string | null
   next_update: string | null
+  remark: string | null
   created_at: string
   updated_at: string
 }

@@ -52,6 +52,7 @@ export async function updateCase(id: string, data: Partial<{
   description: string
   party_details: string
   next_update: string
+  remark: string
   importance: Importance
   case_code: string
 }>) {
@@ -122,6 +123,7 @@ export async function duplicateCase(id: string) {
       importance: original.importance,
       party_details: original.party_details,
       next_update: original.next_update,
+      remark: original.remark,
     })
     .select()
     .single()
