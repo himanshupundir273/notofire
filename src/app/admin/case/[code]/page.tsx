@@ -18,7 +18,7 @@ export default async function AdminCasePage({ params }: { params: Promise<{ code
   const { data: caseData } = await supabase
     .from('cases')
     .select('*')
-    .eq('case_code', code.toUpperCase())
+    .eq('case_code', code.toLowerCase())
     .single()
 
   if (!caseData) notFound()

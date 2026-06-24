@@ -18,9 +18,10 @@ interface Props {
 
 function slugFromTitle(title: string): string {
   return title
-    .toUpperCase()
-    .replace(/[^A-Z0-9]/g, '')
-    .slice(0, 10)
+    .toLowerCase()
+    .replace(/\s+/g, '_')
+    .replace(/[^a-z0-9_]/g, '')
+    .slice(0, 20)
 }
 
 export function CaseForm({ existing, onSuccess }: Props) {
@@ -41,9 +42,9 @@ export function CaseForm({ existing, onSuccess }: Props) {
       toast.error('Case ID is required')
       return
     }
-    const clean = caseCode.toUpperCase().replace(/[^A-Z0-9]/g, '')
+    const clean = caseCode.toLowerCase().replace(/[^a-z0-9_]/g, '')
     if (clean.length < 3) {
-      toast.error('Case ID must be at least 3 characters (letters/numbers only)')
+      toast.error('Case ID must be at least 3 characters (letters, numbers, underscores)')
       return
     }
     setLoading(true)
@@ -98,10 +99,10 @@ export function CaseForm({ existing, onSuccess }: Props) {
               id="case_code"
               value={caseCode}
               onChange={e => {
-                setCaseCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))
+                setCaseCode(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))
                 setCodeEdited(true)
               }}
-              placeholder="e.g. MPHYAAT"
+              placeholder="e.g. mp_hyaat"
               className="font-mono tracking-widest"
               maxLength={20}
               required
@@ -112,7 +113,7 @@ export function CaseForm({ existing, onSuccess }: Props) {
                 title="Regenerate random ID"
                 className="px-2 text-gray-400 hover:text-gray-700 border rounded-md"
                 onClick={() => {
-                  const rand = Math.random().toString(36).substring(2, 9).toUpperCase()
+                  const rand = Math.random().toString(36).substring(2, 9)
                   setCaseCode(rand)
                   setCodeEdited(true)
                 }}

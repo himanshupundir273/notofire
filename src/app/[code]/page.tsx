@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: { params: Promise<{ code: str
   const { data } = await supabase
     .from('cases')
     .select('title, client_name')
-    .eq('case_code', code.toUpperCase())
+    .eq('case_code', code.toLowerCase())
     .single()
 
   return {
@@ -28,7 +28,7 @@ export default async function PublicCasePage({ params }: { params: Promise<{ cod
   const { data: caseData } = await supabase
     .from('cases')
     .select('*')
-    .eq('case_code', code.toUpperCase())
+    .eq('case_code', code.toLowerCase())
     .single()
 
   if (!caseData) notFound()

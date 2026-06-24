@@ -21,7 +21,7 @@ export async function createCase(data: {
 
   const { case_code: customCode, ...rest } = data
 
-  let case_code = customCode?.toUpperCase().replace(/[^A-Z0-9]/g, '') || generateCaseCode()
+  let case_code = customCode?.toLowerCase().replace(/[^a-z0-9_]/g, '') || generateCaseCode()
 
   // Ensure uniqueness — if custom code already taken, append suffix
   const { data: existing } = await supabase
