@@ -48,7 +48,7 @@ export function EventSheetPublic({ caseData, events }: { caseData: Case; events:
 
       {/* ── DESKTOP TABLE (md+) ── */}
       <div className="hidden md:block rounded-2xl border border-gray-200 overflow-hidden shadow-sm bg-white">
-        <div className="grid grid-cols-[3rem_9rem_1fr_7rem] bg-gradient-to-r from-gray-900 to-gray-700 text-white text-sm font-semibold">
+        <div className="grid grid-cols-[3rem_9rem_1fr_7rem] bg-gradient-to-r from-indigo-800 to-indigo-600 text-white text-sm font-semibold">
           <div className="px-4 py-3.5 text-center">#</div>
           <div className="px-4 py-3.5 text-center">Date</div>
           <div className="px-4 py-3.5">Event Description</div>

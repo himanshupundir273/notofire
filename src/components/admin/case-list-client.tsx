@@ -85,18 +85,20 @@ export function CaseListClient({ cases }: { cases: Case[] }) {
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map(c => (
+          {filtered.map(c => {
+            const borderColor = c.importance === 'high' ? 'border-l-red-500' : c.importance === 'medium' ? 'border-l-amber-400' : 'border-l-green-500'
+            return (
             <div
               key={c.id}
-              className="bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 transition-all p-5 flex flex-col gap-4"
+              className={`bg-white rounded-2xl border border-gray-200 border-l-4 ${borderColor} shadow-sm hover:shadow-md hover:border-gray-300 transition-all p-5 flex flex-col gap-4`}
             >
               {/* Title row */}
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">
                   <h2 className="font-bold text-gray-900 leading-tight line-clamp-2">{c.title}</h2>
                   <div className="flex items-center gap-1.5 mt-1.5">
-                    <Hash className="h-3 w-3 text-gray-400 flex-shrink-0" />
-                    <span className="text-xs font-mono text-gray-500 tracking-wider">{c.case_code}</span>
+                    <Hash className="h-3 w-3 text-indigo-400 flex-shrink-0" />
+                    <span className="text-xs font-mono text-indigo-500 tracking-wider">{c.case_code}</span>
                   </div>
                 </div>
                 <ImportanceBadge importance={c.importance} className="flex-shrink-0" />
@@ -105,13 +107,13 @@ export function CaseListClient({ cases }: { cases: Case[] }) {
               {/* Meta */}
               <div className="space-y-1.5 text-sm text-gray-600">
                 <div className="flex items-center gap-2">
-                  <User className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
-                  <span className="truncate">{c.client_name}</span>
+                  <User className="h-3.5 w-3.5 text-indigo-400 flex-shrink-0" />
+                  <span className="truncate font-medium text-gray-700">{c.client_name}</span>
                 </div>
                 {c.contact_number && (
                   <div className="flex items-center gap-2">
-                    <Phone className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
-                    <span className="truncate">{c.contact_number}</span>
+                    <Phone className="h-3.5 w-3.5 text-indigo-400 flex-shrink-0" />
+                    <span className="truncate text-gray-600">{c.contact_number}</span>
                   </div>
                 )}
                 <div className="flex items-center gap-2 text-xs text-gray-400">
@@ -153,7 +155,8 @@ export function CaseListClient({ cases }: { cases: Case[] }) {
                 </Button>
               </div>
             </div>
-          ))}
+          )})}
+
         </div>
       )}
 

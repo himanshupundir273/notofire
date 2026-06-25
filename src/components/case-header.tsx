@@ -55,7 +55,7 @@ export function CaseHeader({ caseData, isAdmin }: Props) {
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
       {/* Top bar */}
-      <div className="bg-gradient-to-r from-gray-900 to-gray-700 px-4 sm:px-6 py-4 sm:py-5">
+      <div className="bg-gradient-to-r from-indigo-800 to-indigo-600 px-4 sm:px-6 py-4 sm:py-5">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3 min-w-0">
             <div className="bg-white/15 rounded-xl p-2 sm:p-2.5 flex-shrink-0 mt-0.5">

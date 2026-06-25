@@ -27,11 +27,11 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-indigo-50 via-white to-slate-100">
       <div className="w-full max-w-sm">
         <div className="flex justify-center mb-6">
           <div className="flex items-center gap-2">
-            <div className="bg-gray-800 rounded-lg p-2">
+            <div className="bg-indigo-600 rounded-xl p-2 shadow-lg shadow-indigo-200">
               <Scale className="h-6 w-6 text-white" />
             </div>
             <span className="text-xl font-bold text-gray-800">LegalCase</span>

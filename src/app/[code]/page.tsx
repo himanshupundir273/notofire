@@ -41,13 +41,13 @@ export default async function PublicCasePage({ params }: { params: Promise<{ cod
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-gradient-to-r from-gray-900 to-gray-700 text-white py-3.5 sticky top-0 z-40 shadow-md">
+      <header className="bg-gradient-to-r from-indigo-700 to-indigo-600 text-white py-3.5 sticky top-0 z-40 shadow-md">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 flex items-center gap-2.5">
-          <div className="bg-white/15 rounded-xl p-1.5">
+          <div className="bg-white/20 rounded-xl p-1.5">
             <Scale className="h-4 w-4 text-white" />
           </div>
           <span className="font-bold text-base tracking-tight">LegalCase</span>
-          <span className="text-xs text-gray-400 bg-white/10 px-2 py-0.5 rounded-full ml-1">
+          <span className="text-xs text-indigo-200 bg-white/15 px-2 py-0.5 rounded-full ml-1">
             Public View
           </span>
         </div>
