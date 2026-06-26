@@ -21,8 +21,9 @@ export function DownloadZipButton({ caseId, caseName, totalFiles }: Props) {
       const params = new URLSearchParams({ caseId, caseName })
       const res = await fetch(`/api/download-zip?${params}`)
       if (!res.ok) {
-        const err = await res.json()
-        toast.error(err.error ?? 'Failed to create ZIP')
+        let msg = 'Failed to create ZIP'
+        try { const err = await res.json(); msg = err.error ?? msg } catch {}
+        toast.error(msg)
         return
       }
       const blob = await res.blob()

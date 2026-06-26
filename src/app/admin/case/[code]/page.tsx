@@ -7,7 +7,6 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, ExternalLink } from 'lucide-react'
 import { DownloadZipButton } from '@/components/admin/download-zip-button'
-import { DuplicateCaseButton } from '@/components/admin/duplicate-case-button'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,13 +14,13 @@ export default async function AdminCasePage({ params }: { params: Promise<{ code
   const { code } = await params
   const supabase = await createClient()
 
-  const { data: caseData } = await supabase
+  const { data: caseData, error: caseError } = await supabase
     .from('cases')
     .select('*')
     .ilike('case_code', code)
     .single()
 
-  if (!caseData) notFound()
+  if (caseError || !caseData) notFound()
 
   const { data: events } = await supabase
     .from('events')
@@ -45,7 +44,6 @@ export default async function AdminCasePage({ params }: { params: Promise<{ code
           </Button>
         </Link>
         <div className="flex items-center gap-2">
-          <DuplicateCaseButton caseId={caseData.id} />
           <DownloadZipButton caseId={caseData.id} caseName={caseData.title} totalFiles={totalFiles} />
           <Link href={`/${caseData.case_code}`} target="_blank">
             <Button variant="outline" size="sm" className="gap-2 text-xs sm:text-sm">

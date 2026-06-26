@@ -13,11 +13,11 @@ export async function generateMetadata({ params }: { params: Promise<{ code: str
   const { data } = await supabase
     .from('cases')
     .select('title, client_name')
-    .eq('case_code', code.toLowerCase())
+    .ilike('case_code', code)
     .single()
 
   return {
-    title: data ? `${data.title} — ${data.client_name}` : 'Case Not Found',
+    title: data?.title ? `${data.title} — ${data.client_name}` : 'Case Not Found',
   }
 }
 
@@ -25,13 +25,13 @@ export default async function PublicCasePage({ params }: { params: Promise<{ cod
   const { code } = await params
   const supabase = await createClient()
 
-  const { data: caseData } = await supabase
+  const { data: caseData, error: caseError } = await supabase
     .from('cases')
     .select('*')
-    .eq('case_code', code.toLowerCase())
+    .ilike('case_code', code)
     .single()
 
-  if (!caseData) notFound()
+  if (caseError || !caseData) notFound()
 
   const { data: events } = await supabase
     .from('events')

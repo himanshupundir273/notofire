@@ -35,11 +35,14 @@ export async function uploadAttachment(formData: FormData) {
 export async function deleteAttachment(id: string, file_url: string) {
   const supabase = await createClient()
 
-  // Extract storage path from URL
-  const url = new URL(file_url)
-  const pathParts = url.pathname.split('/case-files/')
-  if (pathParts[1]) {
-    await supabase.storage.from('case-files').remove([pathParts[1]])
+  try {
+    const url = new URL(file_url)
+    const pathParts = url.pathname.split('/case-files/')
+    if (pathParts[1]) {
+      await supabase.storage.from('case-files').remove([pathParts[1]])
+    }
+  } catch {
+    // URL malformed — skip storage deletion, still remove the DB record
   }
 
   const { error } = await supabase.from('attachments').delete().eq('id', id)
