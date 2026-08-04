@@ -22,6 +22,8 @@ export function AttachmentViewer({ attachment, onDelete, isAdmin, caseTitle, eve
   const category = getFileCategory(attachment.file_type)
   const icon = getFileIcon(attachment.file_type)
 
+  const downloadHref = `/api/download-file?url=${encodeURIComponent(attachment.file_url)}&name=${encodeURIComponent(attachment.file_name)}`
+
   return (
     <>
       <div className="flex items-center gap-2 p-2 rounded-lg border bg-white hover:bg-gray-50 group">
@@ -36,8 +38,7 @@ export function AttachmentViewer({ attachment, onDelete, isAdmin, caseTitle, eve
         </button>
         <div className="flex items-center gap-1 flex-shrink-0">
           <a
-            href={attachment.file_url}
-            download={attachment.file_name}
+            href={downloadHref}
             className="p-1 rounded hover:bg-gray-200 text-gray-500 hover:text-gray-700"
             title="Download"
           >
@@ -102,7 +103,7 @@ export function AttachmentViewer({ attachment, onDelete, isAdmin, caseTitle, eve
                   <div className="flex flex-col items-center gap-4 py-8">
                     <FileText className="h-16 w-16 text-gray-400" />
                     <p className="text-gray-600">Preview not available for this file type.</p>
-                    <a href={attachment.file_url} download={attachment.file_name}>
+                    <a href={downloadHref}>
                       <Button variant="outline">
                         <Download className="h-4 w-4 mr-2" />
                         Download File
