@@ -5,8 +5,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button'
 import { getFileCategory, getFileIcon } from '@/lib/utils/file'
 import type { Attachment } from '@/lib/types'
-import { X, Download, FileText, Image as ImageIcon } from 'lucide-react'
+import { X, Download, FileText, Loader2 } from 'lucide-react'
 import { WhatsAppSender } from '@/components/whatsapp-sender'
+import { toast } from 'sonner'
 
 interface Props {
   attachment: Attachment
@@ -19,10 +20,32 @@ interface Props {
 
 export function AttachmentViewer({ attachment, onDelete, isAdmin, caseTitle, eventDescription, defaultPhone }: Props) {
   const [open, setOpen] = useState(false)
+  const [downloading, setDownloading] = useState(false)
   const category = getFileCategory(attachment.file_type)
   const icon = getFileIcon(attachment.file_type)
 
-  const downloadHref = `/api/download-file?url=${encodeURIComponent(attachment.file_url)}&name=${encodeURIComponent(attachment.file_name)}`
+  async function handleDownload() {
+    setDownloading(true)
+    try {
+      const res = await fetch(
+        `/api/download-file?url=${encodeURIComponent(attachment.file_url)}&name=${encodeURIComponent(attachment.file_name)}`
+      )
+      if (!res.ok) throw new Error('Download failed')
+      const blob = await res.blob()
+      const blobUrl = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = blobUrl
+      a.download = attachment.file_name
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(blobUrl)
+    } catch {
+      toast.error('Download failed — please try again')
+    } finally {
+      setDownloading(false)
+    }
+  }
 
   return (
     <>
@@ -37,13 +60,17 @@ export function AttachmentViewer({ attachment, onDelete, isAdmin, caseTitle, eve
           </span>
         </button>
         <div className="flex items-center gap-1 flex-shrink-0">
-          <a
-            href={downloadHref}
-            className="p-1 rounded hover:bg-gray-200 text-gray-500 hover:text-gray-700"
+          <button
+            onClick={handleDownload}
+            disabled={downloading}
+            className="p-1 rounded hover:bg-gray-200 text-gray-500 hover:text-gray-700 disabled:opacity-50"
             title="Download"
           >
-            <Download className="h-3.5 w-3.5" />
-          </a>
+            {downloading
+              ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              : <Download className="h-3.5 w-3.5" />
+            }
+          </button>
           {caseTitle && (
             <WhatsAppSender
               caseTitle={caseTitle}
@@ -103,12 +130,13 @@ export function AttachmentViewer({ attachment, onDelete, isAdmin, caseTitle, eve
                   <div className="flex flex-col items-center gap-4 py-8">
                     <FileText className="h-16 w-16 text-gray-400" />
                     <p className="text-gray-600">Preview not available for this file type.</p>
-                    <a href={downloadHref}>
-                      <Button variant="outline">
-                        <Download className="h-4 w-4 mr-2" />
-                        Download File
-                      </Button>
-                    </a>
+                    <Button variant="outline" onClick={handleDownload} disabled={downloading}>
+                      {downloading
+                        ? <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        : <Download className="h-4 w-4 mr-2" />
+                      }
+                      {downloading ? 'Downloading…' : 'Download File'}
+                    </Button>
                   </div>
                 )}
               </>
